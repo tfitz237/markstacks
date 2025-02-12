@@ -17,11 +17,11 @@ export default class AsyncIndexedDB {
           const db_request = self.indexedDB.open(this.name, this.version);
           const schema = this.schema;
           db_request.onerror = (event) => reject(event);
-          db_request.onsuccess = (event) => {
+          db_request.onsuccess = () => {
               this.db = db_request.result;
               resolve(this);
           }
-          db_request.onupgradeneeded = function (event) {
+          db_request.onupgradeneeded = function () {
               schema(this.result)
           };
       })
@@ -48,7 +48,7 @@ export default class AsyncIndexedDB {
                   // When a cursor supposed to be returned, return an AsyncIterable instead.
                   // e.g. for await (let {key, value, primaryKey} of await this.query().openCursor()) { ... }
                   return new Promise((resolve, reject) => {
-                      request.onsuccess = (e: any) => {
+                      request.onsuccess = () => {
                           let result = request.result;
                           if (result instanceof IDBCursor)
                               resolve({
@@ -79,8 +79,9 @@ export default class AsyncIndexedDB {
       });
   }
 
-  async export(query, keyRange, count) {
+  async export(keyRange: IDBKeyRange | null = null, count?: number) {
       // Serialize IndexedDB in [[objectStoreName1, [..objects], [objectStoreName2, [..objects], ...] that can be easily turned into a Map.
+      if (!this.db) throw new Error("Database is not initialized");
       return JSON.stringify(await Promise.all([...this.db.objectStoreNames].map(
           async objectStorename => {
               const query = await this.query(objectStorename);
@@ -90,11 +91,11 @@ export default class AsyncIndexedDB {
       )))
   }
 
-  async import(data, keyPaths) {
+  async import(data: any, keyPaths: any) {
       // Need to back up the original before import in case of error.
       // data validation may be required.
       data = JSON.parse(data);
-      await Promise.all(data.map(async ([objectStoreName, entries]) => {
+      await Promise.all(data.map(async ([objectStoreName, entries]: [objectStoreName: string, entries: any[]]) => {
           let query = this.query(objectStoreName);
           if (query.keyPath === null) {
               let keyPath = keyPaths[objectStoreName];
