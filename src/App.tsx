@@ -1,8 +1,10 @@
+import { BookmarkStack } from './components/BookmarkStack';
+
 function App() {
 
   return (
     <>
-      <p>Hello World</p>
+      <BookmarkStack />
     </>
   );
 }
