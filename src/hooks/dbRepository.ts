@@ -1,13 +1,24 @@
-import { useState, useEffect } from 'react';
 import AsyncIndexedDB from '../services/indexdb';
 
-export function DbRepositoryHook<T>({ name, schema, schemaName, fetchOnInit = true }: { name: string, schema: Function, schemaName: string, fetchOnInit?: boolean }) {
-  const [db, setDb] = useState<any>();
-  const [collection, setCollection] = useState<T[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+export interface IDbRepository<T> {
+    db: AsyncIndexedDB;
+    get: (key: any) => Promise<T>;
+    getAll: () => Promise<T[]>;
+    put: (object: any) => Promise<void>;
+    remove: (key: any) => Promise<void>;
+    collection: T[];
+}
 
+export interface IDbHookParams {
+    name: string;
+    schema: Function;
+    schemaName: string;
+    fetchOnInit?: boolean;
+}
 
-  const getStore = () => {
+export default async function DbRepository<T>({ name, schema, schemaName, fetchOnInit = true }: IDbHookParams): Promise<IDbRepository<T>> {
+  let db: AsyncIndexedDB;
+    const getStore = () => {
       const store = db.query(schemaName);
       return store;
   }
@@ -20,43 +31,30 @@ export function DbRepositoryHook<T>({ name, schema, schemaName, fetchOnInit = tr
   const getAll = async () => {
       const store = getStore();
       const data = await store.getAll();
-      setCollection(data);
       return data;
   };
 
   const put = async (object: any) => {
       const store = getStore();
       await store.put(object);
-      await getAll();
   };
 
   const remove = async (key: any) => {
       const store = getStore();
       await store.delete(key);
-      await getAll();
   };
 
-  useEffect(() => {
-      const db = new AsyncIndexedDB(name, schema, 1);
-      db.open().then(() => {
-          setDb(db);
-          setLoading(false);
-          if (fetchOnInit) {
-              db.query(schemaName).getAll().then((data: any) => {
-                  setCollection(data);
-              });
-          }
-      });
-  }, []);
-
-  return { 
-    db, 
-    getStore,
-    collection,
-    loading,
+  const methods = {
     get,
     getAll,
     put,
     remove,
   };
+
+  db = new AsyncIndexedDB(name, schema, 1);
+  return new Promise<IDbRepository<T>>(async (resolve) => {
+    await db.open();
+    const collection = fetchOnInit ? await getAll() : [];
+    resolve({...methods, collection, db });
+  });
 }

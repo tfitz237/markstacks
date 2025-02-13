@@ -1,71 +1,75 @@
-import { useState } from 'react';
-import { DbRepositoryHook } from '../hooks/dbRepository';
+import {useContext, useEffect, useRef } from 'react';
 import { Bookmark } from './Bookmark';
+import { bookmarksParams } from '../models/bookmarks';
+import { AddBookmark } from './AddBookmark';
+import { DbContext } from '../contexts/dbContext';
 
-interface IBookmark {
-  id: number;
-  url: string;
-  title: string;
-}
-
-const schemaName = 'bookmarks';
-
-const BookmarkSchema = async (db: IDBDatabase) => {
-  const store = db.createObjectStore(schemaName, { keyPath: 'id', autoIncrement: true });
-  store.createIndex('url', 'url', { unique: true });
-  store.createIndex('title', 'title', { unique: false });
-}
 
 export const BookmarkStack = () => {
-  const [url, setUrl] = useState('');
-  const [title, setTitle] = useState('');
-  const [openAddBookmark, setOpenAddBookmark] = useState(false);
-  const { collection: bookmarks, ...db } = DbRepositoryHook<IBookmark>({ name: 'markstacks', schema: BookmarkSchema, schemaName });
+  const { databases, put, remove} = useContext(DbContext);
+  const bookmarks = databases[bookmarksParams.name]?.collection || [];
 
 
-  const addBookmark = async () => {
-    await db.put({ url, title });
-    setUrl('');
-    setTitle('');
-    setOpenAddBookmark(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const handleDragEnterOrOver = (e: DragEvent) => {
+    const isLink = e.dataTransfer?.types.includes('text/uri-list');
+    const isMozLink = e.dataTransfer?.types.includes('text/x-moz-url');
+    if (isLink || isMozLink) {
+      e.dataTransfer!.dropEffect = 'link';
+      e.preventDefault();
+      e.stopPropagation();
+    }
   };
+
+  const handleDrop = async (e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = e.dataTransfer?.getData('text/uri-list');
+
+    if (url) {
+      await put(bookmarksParams.name, { url, title: url });
+    }
+  }
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.addEventListener('dragenter', handleDragEnterOrOver);
+      ref.current.addEventListener('dragover', handleDragEnterOrOver);
+      
+    }
+    return () => {
+      if (ref.current) {
+        ref.current.removeEventListener('dragenter', handleDragEnterOrOver);
+        ref.current.removeEventListener('dragover', handleDragEnterOrOver);
+      }
+    }
+  }, []);
+
+  // Ensure that the put method in the handlers
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.addEventListener('drop', handleDrop);
+    }
+    return () => {
+      if (ref.current) {
+        ref.current.removeEventListener('drop', handleDrop);
+      }
+    }
+  }, [put]);
+  
 
 
   return (
-    <div>
-      <dialog open={openAddBookmark}>
-        <article>
-          <header>
-            <button onClick={() => setOpenAddBookmark(false)} aria-label="Close" rel="prev"></button>
-            Bookmarks
-          </header>
-
-          <input
-            type="text"
-            placeholder="URL"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          
-          <footer>
-            <button onClick={addBookmark}>Add Bookmark</button>
-          </footer>
-        </article>
-      </dialog>
-      <button onClick={() => setOpenAddBookmark(true)}>Add</button>
+    <div id="bookmarkStack" ref={ref}>
+      <AddBookmark />
       <div>
-        {bookmarks.map((bookmark) => (
+        {bookmarks?.map((bookmark) => (
           <Bookmark 
             key={bookmark.id} 
             url={bookmark.url} 
             title={bookmark.title} 
-            onRemove={() => db.remove(bookmark.id)} />
+            onRemove={() => remove(bookmarksParams.name, bookmark.id)} />
         ))}
       </div>
     </div>

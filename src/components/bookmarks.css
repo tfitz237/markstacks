@@ -1,0 +1,40 @@
+li.bookmarkRoot {
+  list-style: none;
+  padding: 0.5rem;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+}
+
+li.bookmarkRoot div.bookmarkLine {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+li.bookmarkRoot span {
+  padding-left: 0.5rem;
+  flex-grow: 1;
+}
+
+li.bookmarkRoot button {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  height: 1rem;
+  width: 1rem;
+  line-height: 0.5rem
+}
+
+li.bookmarkRoot button.details {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+li.bookmarkRoot button.details {
+  border: 1px solid #222;
+  border-radius: 999px;
+}
