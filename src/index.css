@@ -11,6 +11,29 @@ body {
 
 }
 
+a {
+  text-decoration: none;
+  color: #0272b8;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
 button {
+  box-sizing: border-box;
   cursor: pointer;
+  color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #333;
+    color: #eee;
+  }
+
+  button {
+    background-color: #444;
+    color: #eee;
+  }
 }

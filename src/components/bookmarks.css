@@ -15,6 +15,14 @@ li.bookmarkRoot div.bookmarkLine {
 li.bookmarkRoot span {
   padding-left: 0.5rem;
   flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+li.bookmarkRoot div.bookmarkDetails {
+  padding-top: 0.5rem;
+  margin-left: 1.85rem;
 }
 
 li.bookmarkRoot button {
@@ -30,11 +38,20 @@ li.bookmarkRoot button.details {
   border: none;
   background: none;
   padding: 0.25rem;
-  height: 1rem;
-  width: 1rem;
+  height: 1.4rem;
+  width: 1.4rem;
 }
 
 li.bookmarkRoot button.details {
-  border: 1px solid #222;
   border-radius: 999px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(150, 150, 150, 0.0);
+  font-size: 1.2rem;
+  transition: border-color 0.3s;
+
+}
+
+li.bookmarkRoot button.details:hover {
+  border: 1px solid rgba(150, 150, 150, 1.0);
 }
