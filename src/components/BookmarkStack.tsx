@@ -26,7 +26,7 @@ export const BookmarkStack = () => {
     e.preventDefault();
     e.stopPropagation();
     const url = e.dataTransfer?.getData('text/uri-list');
-
+    
     if (url) {
       await put(bookmarksParams.name, { url, title: url });
     }
@@ -65,11 +65,13 @@ export const BookmarkStack = () => {
       <AddBookmark />
       <div>
         {bookmarks?.map((bookmark) => (
-          <Bookmark 
-            key={bookmark.id} 
+          <Bookmark
+            key={bookmark.id}
+            id={bookmark.id}
             url={bookmark.url} 
             title={bookmark.title} 
-            onRemove={() => remove(bookmarksParams.name, bookmark.id)} />
+            onRemove={() => remove(bookmarksParams.name, bookmark.id)}
+            changeTitle={(title: string) => put(bookmarksParams.name, { ...bookmark, title})} />
         ))}
       </div>
     </div>
