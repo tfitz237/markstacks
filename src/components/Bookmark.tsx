@@ -11,6 +11,7 @@ export const Bookmark = ({ id, url, title, onRemove, changeTitle }: { id: string
     setFocused(false);
   };
 
+
   return (
     <li className='bookmarkRoot' style={{ backgroundColor: focused ? '#332' : 'inherit' }} data-id={id}>
       <div className='bookmarkLine'>
@@ -20,7 +21,7 @@ export const Bookmark = ({ id, url, title, onRemove, changeTitle }: { id: string
         <span 
           contentEditable
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={(e) => { setFocused(false); e.target.innerText = title; }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); titleChanged(e); } }}
         >
           {title}
