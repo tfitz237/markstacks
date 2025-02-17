@@ -7,9 +7,9 @@ function App() {
   return (
     <>
       <DbProvider dbsToInit={[ bookmarksParams ]}>
-        <div className="appRoot">
-          <BookmarkStack />
-        </div>
+          <div className="appRoot">
+            <BookmarkStack />
+          </div>
       </DbProvider>
     </>
   );

@@ -24,6 +24,7 @@ button {
   box-sizing: border-box;
   cursor: pointer;
   color: #222;
+  padding: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {

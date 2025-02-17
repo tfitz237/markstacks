@@ -4,6 +4,7 @@ li.bookmarkRoot {
   border-bottom: 1px solid #ccc;
   display: flex;
   flex-direction: column;
+  background-color: #ccc;
 }
 
 li.bookmarkRoot div.bookmarkLine {
@@ -54,4 +55,23 @@ li.bookmarkRoot button.details {
 
 li.bookmarkRoot button.details:hover {
   border: 1px solid rgba(150, 150, 150, 1.0);
+}
+
+
+@media(prefers-color-scheme: dark) {
+  li.bookmarkRoot {
+    background-color: #444;
+  }
+
+  li.bookmarkRoot button {
+    color: #eee;
+  }
+
+  li.bookmarkRoot button.details {
+    border-color: rgba(150, 150, 150, 0.0);
+  }
+
+  li.bookmarkRoot button.details:hover {
+    border: 1px solid rgba(150, 150, 150, 1.0);
+  }
 }

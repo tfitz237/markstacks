@@ -1,32 +1,52 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './bookmarks.css';
+import { useSortable } from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 
-export const Bookmark = ({ id, url, title, onRemove, changeTitle }: { id: string, url: string, title: string, onRemove?: Function, changeTitle: Function}) => {
+
+
+export const Bookmark = ({ id, url, title, onRemove, changeTitle, onDrop }: { id: number, url: string, title: string, onRemove?: Function, changeTitle: Function, onDrop?: Function}) => {
   const [showDetails, setShowDetails] = useState(false);
   const [focused, setFocused] = useState(false);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+    isOver
+  } = useSortable({id, disabled: id == 0});
 
-  const titleChanged = (e: any) => {
-    changeTitle(e.target.innerText);
-    e.target.blur();
-    setFocused(false);
+  const style = {
+    transform: id != 0 &&  CSS.Transform.toString(transform),
+    transition: id != 0 && transition,
   };
+
+  
 
 
   return (
-    <li className='bookmarkRoot' style={{ backgroundColor: focused ? '#332' : 'inherit' }} data-id={id}>
+    <li 
+      className='bookmarkRoot' 
+      style={{opacity: isDragging ? '50%': '100%', ...style}}
+      data-bookmark-id={id}
+      ref={setNodeRef}
+
+      >
       <div className='bookmarkLine'>
-        <button className='details'
-          onClick={() => setShowDetails(!showDetails)}>{showDetails ? '-' : '+'}
-        </button>
-        <span 
-          contentEditable
-          onFocus={() => setFocused(true)}
-          onBlur={(e) => { setFocused(false); e.target.innerText = title; }}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); titleChanged(e); } }}
-        >
-          {title}
-        </span>
-        {onRemove && <button style={{ float: 'right', padding: '0.25rem', lineHeight: 'normal'}} onClick={() => onRemove()}>X</button>}
+          <button className='details'
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDetails(!showDetails)}
+            }>
+                {showDetails ? '-' : '+'}
+          </button>
+          
+          <span className='bookmarkDragHandle' {...attributes} {...listeners} style={{ cursor: isOver ? 'move' : 'default' }}>
+            {title}
+          </span>
+        {onRemove && id != 0 && <button style={{ float: 'right', padding: '0.25rem', lineHeight: 'normal'}} onClick={(e) => { e.stopPropagation(); onRemove() }}>X</button>}
 
       </div>
       {showDetails && 
