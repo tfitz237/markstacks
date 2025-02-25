@@ -1,6 +1,6 @@
-import {useContext, useEffect, useRef, useState } from 'react';
+import {useContext, useEffect } from 'react';
 import { Bookmark } from './Bookmark';
-import { bookmarksParams, IBookmark } from '../models/bookmarks';
+import { bookmarksParams, getBookmarkTree } from '../models/bookmarks';
 import { AddBookmark } from './AddBookmark';
 import { DbContext } from '../contexts/dbContext';
 import {
@@ -13,23 +13,26 @@ import {
   useDroppable,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import './bookmarks.css';
 
 
 export const BookmarkStack = () => {
-  const { databases, put, remove} = useContext(DbContext);
-  const items = databases[bookmarksParams.name]?.collection || [];
-  const [bookmarks, setBookmarks] = useState<IBookmark[]>(items);
+  const { databases, put, putAll, remove} = useContext(DbContext);
+  const bookmarks = databases[bookmarksParams.name]?.collection || [];
+  const bookmarkRoot = getBookmarkTree(bookmarks);
+  console.log(bookmarkRoot);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+
 
   
 
@@ -39,14 +42,12 @@ export const BookmarkStack = () => {
     function createRoot() {
       let root = collection.find(x => x.id == 0);
       if (!root) {
-        root = { id: 0, title: 'Bookmarks', url: '', parent: null, children: [] };
+        root = { id: 0, title: 'Bookmarks', url: '', parent: null, orderNumber: 0 };
         put(bookmarksParams.name, root);
       }
     }
     createRoot();
 
-
-    setBookmarks(collection);
   }, [put, databases[bookmarksParams.name]?.collection]);
 
   const {setNodeRef} = useDroppable({
@@ -91,26 +92,23 @@ export const BookmarkStack = () => {
         url = event.dataTransfer.getData(type);
         title = url;
       }
-      put(bookmarksParams.name, { url, title, parent: dropId, children: [] });
+      put(bookmarksParams.name, { url, title, parent: dropId, orderNumber: bookmarks.length });
 
     }
   };
+
   const handleDragEnd = (event: any) => {
     const {active, over } = event;
-    if (active.id == 0 || over.id == 0) {
-      if (over.id == 0) {
-        const oldIndex = bookmarks.findIndex((bookmark) => bookmark.id === active.id);
-        const bookmark = bookmarks[oldIndex];
-        bookmark.parent = 0;
-        const newBookmarks = arrayMove(bookmarks, oldIndex, 1);
-        setBookmarks(newBookmarks);
-      }
-    } else if (active.id !== over.id) {
-      const oldIndex = bookmarks.findIndex((bookmark) => bookmark.id === active.id);
-      const newIndex = bookmarks.findIndex((bookmark) => bookmark.id === over.id);
-      const newBookmarks = arrayMove(bookmarks, oldIndex, newIndex);
-      setBookmarks(newBookmarks);
+    const activeBookmark = bookmarks.find((bookmark) => bookmark.id === active.id);
+    const overBookmark = bookmarks.find((bookmark) => bookmark.id === over.id);
+    activeBookmark.orderNumber = overBookmark.orderNumber;
+    overBookmark.orderNumber = overBookmark.orderNumber + 1;
+    // if parent changed
+    if (activeBookmark.parent !== overBookmark.parent) {
+      activeBookmark.parent = overBookmark.parent;
     }
+    putAll(bookmarksParams.name, [activeBookmark, overBookmark]);
+
   };
 
   useEffect(() => {
@@ -120,7 +118,7 @@ export const BookmarkStack = () => {
       window.removeEventListener('drop', handleDropWindow);
       window.removeEventListener('dragover', handleDragOverWindow);
     };
-  }, [databases[bookmarksParams.name]?.collection, put]);
+  }, [databases[bookmarksParams.name]?.collection, putAll]);
 
 
   return (
@@ -132,19 +130,17 @@ export const BookmarkStack = () => {
     <div id="bookmarkStack" ref={setNodeRef}>
       <AddBookmark />
       <SortableContext 
-        items={items}
+        id="root"
+        items={bookmarks}
         strategy={verticalListSortingStrategy}
       >
-        {bookmarks?.map((bookmark) => (
-          <Bookmark
-            key={bookmark.id}
-            id={bookmark.id!}
-            url={bookmark.url} 
-            title={bookmark.title} 
-            onRemove={() => remove(bookmarksParams.name, bookmark.id)}
-            changeTitle={(title: string) => put(bookmarksParams.name, { ...bookmark, title})}
-            />
-        ))}
+        {bookmarkRoot && <ul>
+          <Bookmark 
+            bookmark={bookmarkRoot} 
+            onRemove={(id: number) => remove(bookmarksParams.name, id)}
+            changeTitle={(id: number, title: string) => put(bookmarksParams.name, { id, title })}
+          />
+        </ul>}
       </SortableContext>
     </div>
     </DndContext>

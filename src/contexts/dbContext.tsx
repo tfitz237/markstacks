@@ -7,6 +7,7 @@ interface DbContextType {
   get: (dbName: string, id: any) => Promise<any>;
   getAll: (dbName: string) => Promise<any[]>;
   put: (dbName: string, object: any) => Promise<void>;
+  putAll: (dbName: string, objects: any[]) => Promise<void>;
   remove: (dbName: string, id: any) => Promise<void>;
 
 }
@@ -61,6 +62,15 @@ export const DbProvider = ({ children, dbsToInit = [] }: { children: any, dbsToI
     }
   }
 
+  const putAll = async (dbName: string, objects: any[]) => {
+    const db = databases[dbName];
+    if (db) {
+      await db.putAll(objects);
+      const data = await db.getAll();
+      setDatabases({ ...databases, [dbName]: { ...db, collection: data } });
+    }
+  }
+
   const remove = async (dbName: string, id: any) => {
     const db = databases[dbName];
     if (db) {
@@ -70,7 +80,7 @@ export const DbProvider = ({ children, dbsToInit = [] }: { children: any, dbsToI
     }
   }
 
-  const currentValue = { databases, get, getAll, put, remove };
+  const currentValue = { databases, get, getAll, put, putAll, remove };
 
   return (<>
     <DbContext.Provider value={currentValue}>

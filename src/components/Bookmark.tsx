@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import './bookmarks.css';
-import { useSortable } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
+import { IBookmark } from '../models/bookmarks';
 
 
 
-export const Bookmark = ({ id, url, title, onRemove, changeTitle, onDrop }: { id: number, url: string, title: string, onRemove?: Function, changeTitle: Function, onDrop?: Function}) => {
+export const Bookmark = ({ bookmark, onRemove, changeTitle, onDrop }: { bookmark: IBookmark, onRemove?: Function, changeTitle: Function, onDrop?: Function}) => {
+  const id = bookmark.id!;
   const [showDetails, setShowDetails] = useState(false);
-  const [focused, setFocused] = useState(false);
   const {
     attributes,
     listeners,
@@ -18,21 +19,21 @@ export const Bookmark = ({ id, url, title, onRemove, changeTitle, onDrop }: { id
     isOver
   } = useSortable({id, disabled: id == 0});
 
-  const style = {
-    transform: id != 0 &&  CSS.Transform.toString(transform),
+  const style: any = {
+    transform: id != 0  &&  CSS.Transform.toString(transform),
     transition: id != 0 && transition,
+    opacity: isDragging ? '50%' : '100%',
+    paddingRight: !showDetails ? '0.5rem': '0',
+    borderBottom: id == 0 ? 'none' : '1px solid #ccc',
   };
 
   
-
-
   return (
     <li 
       className='bookmarkRoot' 
-      style={{opacity: isDragging ? '50%': '100%', ...style}}
+      style={style}
       data-bookmark-id={id}
       ref={setNodeRef}
-
       >
       <div className='bookmarkLine'>
           <button className='details'
@@ -44,14 +45,26 @@ export const Bookmark = ({ id, url, title, onRemove, changeTitle, onDrop }: { id
           </button>
           
           <span className='bookmarkDragHandle' {...attributes} {...listeners} style={{ cursor: isOver ? 'move' : 'default' }}>
-            {title}
+            {bookmark.title}
           </span>
-        {onRemove && id != 0 && <button style={{ float: 'right', padding: '0.25rem', lineHeight: 'normal'}} onClick={(e) => { e.stopPropagation(); onRemove() }}>X</button>}
+        {onRemove && id != 0 && <button style={{ float: 'right', padding: '0.25rem', lineHeight: 'normal'}} onClick={(e) => { e.stopPropagation(); onRemove(id) }}>X</button>}
 
       </div>
       {showDetails && 
       <div className='bookmarkDetails'>
-        <a href="{url}" target="_blank">{url}</a>
+        <a href="{bookmark.url}" target="_blank">{bookmark.url}</a>
+        {bookmark.children && 
+        <SortableContext
+          id={id.toString()}
+          items={(bookmark as any).children}
+          strategy={verticalListSortingStrategy}
+        >
+          {bookmark.children && <ul>
+            {bookmark.children?.map((child) => (
+              <Bookmark key={child.id} bookmark={child} changeTitle={changeTitle} onRemove={onRemove} onDrop={onDrop} />
+            ))}
+          </ul>}
+        </SortableContext>}
       </div>}
     </li>
   );

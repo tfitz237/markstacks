@@ -1,3 +1,10 @@
+div#bookmarkStack ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+
 li.bookmarkRoot {
   list-style: none;
   padding: 0.5rem;
@@ -21,9 +28,15 @@ li.bookmarkRoot span {
   text-overflow: ellipsis;
 }
 
-li.bookmarkRoot div.bookmarkDetails {
-  padding-top: 0.5rem;
+/* li.bookmarkRoot div.bookmarkDetails {
+  
   margin-left: 1.85rem;
+} */
+
+li.bookmarkRoot div.bookmarkLine div.bookmarkDetails ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 li.bookmarkRoot button {

@@ -5,6 +5,7 @@ export interface IDbRepository<T> {
     get: (key: any) => Promise<T>;
     getAll: () => Promise<T[]>;
     put: (object: any) => Promise<void>;
+    putAll: (objects: any[]) => Promise<void>;
     remove: (key: any) => Promise<void>;
     collection: T[];
 }
@@ -39,6 +40,10 @@ export default async function DbRepository<T>({ name, schema, schemaName, fetchO
       await store.put(object);
   };
 
+  const putAll = async (objects: any[]) => {
+      await Promise.all(objects.map(put));
+  }
+
   const remove = async (key: any) => {
       const store = getStore();
       await store.delete(key);
@@ -48,6 +53,7 @@ export default async function DbRepository<T>({ name, schema, schemaName, fetchO
     get,
     getAll,
     put,
+    putAll,
     remove,
   };
 
