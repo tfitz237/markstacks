@@ -1,9 +1,9 @@
 
 export interface IBookmark {
-  id?: number;
+  id?: number | string;
   url: string;
   name: string;
-  parent: number;
+  parent: string;
   orderNumber: number;
   children?: IBookmark[];
 }
@@ -26,6 +26,7 @@ export const getBookmarkTree = ( bookmarks: IBookmark[], bookmark?: IBookmark): 
     return null;
   }
   root!.id = `${root.id}` as any;
+  // root!.parent = root.parent === null && root.id !== 0 ? '0' : root.parent;
   const children = bookmarks.filter(x => x.parent == root.id);
   root.children = children.map(x => getBookmarkTree(bookmarks, x)!).sort((a, b) => a.orderNumber - b.orderNumber);
   return root;

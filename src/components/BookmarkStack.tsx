@@ -66,22 +66,28 @@ export const BookmarkStack = () => {
   };
 
   const handleDragEnd = ({ dragIds, parentId, index }: any) => {
+    parentId = parentId || "0";
     const bookmarksInParent = parentId === "0" ? bookmarks.slice(1) : bookmarks.filter((bookmark) => bookmark.parent === parentId);
-      bookmarksInParent.forEach((bookmark: IBookmark, i: number) => {
-        bookmark.id = Number(bookmark.id);
-        bookmark.orderNumber = i;
-        if (i >= index) {
-          bookmark.orderNumber = dragIds.length + i;
-        }
-      });
+    bookmarksInParent.forEach((bookmark: IBookmark, i: number) => {
+      bookmark.id = Number(bookmark.id);
+      bookmark.orderNumber = i;
+      if (i >= index) {
+        bookmark.orderNumber = dragIds.length + i;
+      }
+      bookmark.children = undefined;
+    });
+
     const dragBookmarks = dragIds.map((id: string) => bookmarks.find((bookmark) => Number(bookmark.id) === Number(id)));
     dragBookmarks.forEach((bookmark: IBookmark, i: number) => {
       bookmark.id = Number(bookmark.id);
       bookmark.parent = parentId;
       bookmark.orderNumber = index + i;
+      
+      bookmark.children = undefined;
     });
 
-    putAll(bookmarksParams.name, [...bookmarksInParent, ...dragBookmarks]);
+    const newData = [...bookmarksInParent, ...dragBookmarks];
+    putAll(bookmarksParams.name, newData);
   };
 
   useEffect(() => {
@@ -98,7 +104,7 @@ export const BookmarkStack = () => {
     <div id="bookmarkStack">
       <AddBookmark /><input type="text" className="search" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target?.value || "")} />
       {bookmarkRoot && <Tree
-        data={[{ ...bookmarkRoot, id: "0"}]}
+        data={bookmarkRoot.children}
         children={Bookmark}
         rowHeight={50}
         searchTerm={searchTerm}
