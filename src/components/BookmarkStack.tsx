@@ -1,39 +1,17 @@
-import {useContext, useEffect } from 'react';
+import {useContext, useEffect, useState } from 'react';
 import { Bookmark } from './Bookmark';
 import { bookmarksParams, getBookmarkTree } from '../models/bookmarks';
 import { AddBookmark } from './AddBookmark';
 import { DbContext } from '../contexts/dbContext';
-import {
-  DndContext, 
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
 import './bookmarks.css';
+import { Tree } from 'react-arborist';
 
 
 export const BookmarkStack = () => {
   const { databases, put, putAll, remove} = useContext(DbContext);
   const bookmarks = databases[bookmarksParams.name]?.collection || [];
   const bookmarkRoot = getBookmarkTree(bookmarks);
-  console.log(bookmarkRoot);
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-
-
+  const [searchTerm, setSearchTerm] = useState('');   
   
 
   useEffect(() => {
@@ -42,20 +20,13 @@ export const BookmarkStack = () => {
     function createRoot() {
       let root = collection.find(x => x.id == 0);
       if (!root) {
-        root = { id: 0, title: 'Bookmarks', url: '', parent: null, orderNumber: 0 };
+        root = { id: 0, name: 'Bookmarks', url: '', parent: null, orderNumber: 0 };
         put(bookmarksParams.name, root);
       }
     }
     createRoot();
 
   }, [put, databases[bookmarksParams.name]?.collection]);
-
-  const {setNodeRef} = useDroppable({
-    id: 'bookmark-stacks-drop',
-    data: {
-      accepts: ['text/uri-list', 'text/moz-link'],
-    },
-  });
 
   const handleDragOverWindow = (event: any) => {
     if (event.dataTransfer && event.dataTransfer.types.includes('text/uri-list')) {
@@ -122,27 +93,14 @@ export const BookmarkStack = () => {
 
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-    <div id="bookmarkStack" ref={setNodeRef}>
-      <AddBookmark />
-      <SortableContext 
-        id="root"
-        items={bookmarks}
-        strategy={verticalListSortingStrategy}
-      >
-        {bookmarkRoot && <ul>
-          <Bookmark 
-            bookmark={bookmarkRoot} 
-            onRemove={(id: number) => remove(bookmarksParams.name, id)}
-            changeTitle={(id: number, title: string) => put(bookmarksParams.name, { id, title })}
-          />
-        </ul>}
-      </SortableContext>
+    <div id="bookmarkStack">
+      <AddBookmark /><input type="text" className="search" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target?.value || "")} />
+      {bookmarkRoot && <Tree
+        initialData={[{ ...bookmarkRoot, id: "0"}]}
+        children={Bookmark}
+        rowHeight={50}
+        searchTerm={searchTerm}
+       />}
     </div>
-    </DndContext>
   );
 }

@@ -1,26 +1,25 @@
-div#bookmarkStack ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-
-li.bookmarkRoot {
-  list-style: none;
+div.bookmarkRoot {
   padding: 0.5rem;
-  border-bottom: 1px solid #ccc;
+
   display: flex;
   flex-direction: column;
   background-color: #ccc;
 }
 
-li.bookmarkRoot div.bookmarkLine {
+div#bookmarkStack input[type="text"].search {
+  padding: 0.5rem;
+
+  border: 1px solid #aaa;
+
+}
+
+div.bookmarkRoot div.bookmarkLine {
   display: flex;
   align-items: center;
   flex-direction: row;
 }
 
-li.bookmarkRoot span {
+div.bookmarkRoot span {
   padding-left: 0.5rem;
   flex-grow: 1;
   white-space: nowrap;
@@ -28,18 +27,18 @@ li.bookmarkRoot span {
   text-overflow: ellipsis;
 }
 
-/* li.bookmarkRoot div.bookmarkDetails {
+/* div.bookmarkRoot div.bookmarkDetails {
   
   margin-left: 1.85rem;
 } */
 
-li.bookmarkRoot div.bookmarkLine div.bookmarkDetails ul {
+div.bookmarkRoot div.bookmarkLine div.bookmarkDetails ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-li.bookmarkRoot button {
+div.bookmarkRoot button {
   border: none;
   background: none;
   padding: 0.25rem;
@@ -48,7 +47,7 @@ li.bookmarkRoot button {
   line-height: 0.5rem
 }
 
-li.bookmarkRoot button.details {
+div.bookmarkRoot button.details {
   border: none;
   background: none;
   padding: 0.25rem;
@@ -56,35 +55,45 @@ li.bookmarkRoot button.details {
   width: 1.4rem;
 }
 
-li.bookmarkRoot button.details {
+div.bookmarkRoot button.details {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
   border-width: 1px;
   border-style: solid;
   border-color: rgba(150, 150, 150, 0.0);
-  font-size: 1.2rem;
+  background-color: #000;
+  font-size: 1rem;
   transition: border-color 0.3s;
+
 
 }
 
-li.bookmarkRoot button.details:hover {
+div.bookmarkRoot button.details:hover {
   border: 1px solid rgba(150, 150, 150, 1.0);
 }
 
 
 @media(prefers-color-scheme: dark) {
-  li.bookmarkRoot {
+  div.bookmarkRoot {
     background-color: #444;
   }
 
-  li.bookmarkRoot button {
+  div#bookmarkStack input[type="text"].search {
+    background-color: #333;
     color: #eee;
   }
 
-  li.bookmarkRoot button.details {
+  div.bookmarkRoot button {
+    color: #eee;
+  }
+
+  div.bookmarkRoot button.details {
     border-color: rgba(150, 150, 150, 0.0);
   }
 
-  li.bookmarkRoot button.details:hover {
+  div.bookmarkRoot button.details:hover {
     border: 1px solid rgba(150, 150, 150, 1.0);
   }
 }

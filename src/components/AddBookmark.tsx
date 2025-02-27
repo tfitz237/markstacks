@@ -11,7 +11,7 @@ export const AddBookmark = () => {
   const [openAddBookmark, setOpenAddBookmark] = useState(false);
 
   const addBookmark = async () => {
-    await put(bookmarksParams.name, { url, title, parent: 0, children: [] });
+    await put(bookmarksParams.name, { url, name: title, parent: 0, children: [] });
     setUrl('');
     setTitle('');
     setOpenAddBookmark(false);
