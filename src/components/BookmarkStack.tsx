@@ -1,6 +1,6 @@
 import {useContext, useEffect, useState } from 'react';
 import { Bookmark } from './Bookmark';
-import { bookmarksParams, getBookmarkTree } from '../models/bookmarks';
+import { bookmarksParams, getBookmarkTree, IBookmark } from '../models/bookmarks';
 import { AddBookmark } from './AddBookmark';
 import { DbContext } from '../contexts/dbContext';
 import './bookmarks.css';
@@ -8,23 +8,20 @@ import { Tree } from 'react-arborist';
 
 
 export const BookmarkStack = () => {
-  const { databases, put, putAll, remove} = useContext(DbContext);
+  const { databases, put, putAll } = useContext(DbContext);
   const bookmarks = databases[bookmarksParams.name]?.collection || [];
   const bookmarkRoot = getBookmarkTree(bookmarks);
   const [searchTerm, setSearchTerm] = useState('');   
   
-
+  // make sure root is there
   useEffect(() => {
     const collection = databases[bookmarksParams.name]?.collection || [];
     
-    function createRoot() {
-      let root = collection.find(x => x.id == 0);
-      if (!root) {
-        root = { id: 0, name: 'Bookmarks', url: '', parent: null, orderNumber: 0 };
-        put(bookmarksParams.name, root);
-      }
+    let root = collection.find(x => x.id == 0);
+    if (!root) {
+      root = { id: 0, name: 'Bookmarks', url: '', parent: null, orderNumber: 0 };
+      put(bookmarksParams.name, root);
     }
-    createRoot();
 
   }, [put, databases[bookmarksParams.name]?.collection]);
 
@@ -68,18 +65,23 @@ export const BookmarkStack = () => {
     }
   };
 
-  const handleDragEnd = (event: any) => {
-    const {active, over } = event;
-    const activeBookmark = bookmarks.find((bookmark) => bookmark.id === active.id);
-    const overBookmark = bookmarks.find((bookmark) => bookmark.id === over.id);
-    activeBookmark.orderNumber = overBookmark.orderNumber;
-    overBookmark.orderNumber = overBookmark.orderNumber + 1;
-    // if parent changed
-    if (activeBookmark.parent !== overBookmark.parent) {
-      activeBookmark.parent = overBookmark.parent;
-    }
-    putAll(bookmarksParams.name, [activeBookmark, overBookmark]);
+  const handleDragEnd = ({ dragIds, parentId, index }: any) => {
+    const bookmarksInParent = parentId === "0" ? bookmarks.slice(1) : bookmarks.filter((bookmark) => bookmark.parent === parentId);
+      bookmarksInParent.forEach((bookmark: IBookmark, i: number) => {
+        bookmark.id = Number(bookmark.id);
+        bookmark.orderNumber = i;
+        if (i >= index) {
+          bookmark.orderNumber = dragIds.length + i;
+        }
+      });
+    const dragBookmarks = dragIds.map((id: string) => bookmarks.find((bookmark) => Number(bookmark.id) === Number(id)));
+    dragBookmarks.forEach((bookmark: IBookmark, i: number) => {
+      bookmark.id = Number(bookmark.id);
+      bookmark.parent = parentId;
+      bookmark.orderNumber = index + i;
+    });
 
+    putAll(bookmarksParams.name, [...bookmarksInParent, ...dragBookmarks]);
   };
 
   useEffect(() => {
@@ -96,10 +98,11 @@ export const BookmarkStack = () => {
     <div id="bookmarkStack">
       <AddBookmark /><input type="text" className="search" placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target?.value || "")} />
       {bookmarkRoot && <Tree
-        initialData={[{ ...bookmarkRoot, id: "0"}]}
+        data={[{ ...bookmarkRoot, id: "0"}]}
         children={Bookmark}
         rowHeight={50}
         searchTerm={searchTerm}
+        onMove={handleDragEnd}
        />}
     </div>
   );
